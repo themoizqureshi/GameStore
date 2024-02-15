@@ -32,8 +32,6 @@ List<Game> games = new(){
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-// app.MapGet("/", () => "Hello World!");
-
 app.MapGet("/games", () => games);
 
 app.MapGet("/games/{id}", (int id) =>
@@ -70,6 +68,17 @@ app.MapPut("/games/{id}", (int id, Game updatedGame) =>
     existingGame.ImageUri = existingGame.ImageUri;
 
     return Results.NoContent();
+});
+
+app.MapDelete("/games/{id}", (int id) =>
+{
+    Game? existingGame = games.Find(game => game.Id == id);
+    if (existingGame is not null)
+    {
+        games.Remove(existingGame);
+    }
+    return Results.NoContent();
+
 });
 
 app.Run();
