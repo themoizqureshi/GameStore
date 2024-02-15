@@ -1,7 +1,7 @@
 using GameStore.Api.Entities;
 const string GetGameEndPointName = "GetGame";
 
-List <Game> games = new(){
+List<Game> games = new(){
     new Game(){
         Id = 1,
         Name = "Street Fighter II",
@@ -34,9 +34,9 @@ var app = builder.Build();
 
 // app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/games",()=>games);
+app.MapGet("/games", () => games);
 
-app.MapGet("/games/{id}",(int id)=>
+app.MapGet("/games/{id}", (int id) =>
 {
     Game? game = games.Find(game => game.Id == id);
     if (game is null)
@@ -47,11 +47,29 @@ app.MapGet("/games/{id}",(int id)=>
 }
 ).WithName(GetGameEndPointName);
 
-app.MapPost("/games",(Game game)=>{
-game.Id = games.Max(game => game.Id)+1;
-games.Add(game);
+app.MapPost("/games", (Game game) =>
+{
+    game.Id = games.Max(game => game.Id) + 1;
+    games.Add(game);
 
-return Results.CreatedAtRoute(GetGameEndPointName,new {id = game.Id}, game);
+    return Results.CreatedAtRoute(GetGameEndPointName, new { id = game.Id }, game);
+});
+
+app.MapPut("/games/{id}", (int id, Game updatedGame) =>
+{
+    Game? existingGame = games.Find(game => game.Id == id);
+    if (existingGame is null)
+    {
+        return Results.NotFound();
+    }
+
+    existingGame.Name = updatedGame.Name;
+    existingGame.Genre = updatedGame.Genre;
+    existingGame.Price = updatedGame.Price;
+    existingGame.ReleaseDate = updatedGame.ReleaseDate;
+    existingGame.ImageUri = existingGame.ImageUri;
+
+    return Results.NoContent();
 });
 
 app.Run();
