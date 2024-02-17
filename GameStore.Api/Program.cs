@@ -32,7 +32,8 @@ List<Game> games = new(){
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-var gamesGroup = app.MapGroup("/games");
+var gamesGroup = app.MapGroup("/games")
+.WithParameterValidation();
 
 
 gamesGroup.MapGet("/", () => games);
