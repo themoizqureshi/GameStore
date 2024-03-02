@@ -1,3 +1,4 @@
+using GameStore.Api.Authorization;
 using GameStore.Api.DTOs;
 using GameStore.Api.Entities;
 using GameStore.Api.Repositories;
@@ -27,7 +28,8 @@ public static class GamesEndpoints
                     return game is not null ? Results.Ok(game.AsDTO()) : Results.NotFound();
                 }
             )
-            .WithName(GetGameEndPointName);
+            .WithName(GetGameEndPointName)
+            .RequireAuthorization(Policies.ReadAccess);
 
         gamesGroup.MapPost(
             "/",
@@ -45,7 +47,7 @@ public static class GamesEndpoints
 
                 return Results.CreatedAtRoute(GetGameEndPointName, new { id = game.Id }, game);
             }
-        );
+        ).RequireAuthorization(Policies.WriteAccess);
 
         gamesGroup.MapPut(
             "/{id}",
@@ -67,7 +69,7 @@ public static class GamesEndpoints
 
                 return Results.NoContent();
             }
-        );
+        ).RequireAuthorization(Policies.WriteAccess);
 
         gamesGroup.MapDelete(
             "/{id}",
@@ -80,7 +82,7 @@ public static class GamesEndpoints
                 }
                 return Results.NoContent();
             }
-        );
+        ).RequireAuthorization(Policies.WriteAccess);
         return gamesGroup;
     }
 }
