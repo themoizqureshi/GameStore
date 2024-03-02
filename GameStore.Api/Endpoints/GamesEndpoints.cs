@@ -13,17 +13,17 @@ public static class GamesEndpoints
 
         var gamesGroup = routes.MapGroup("/games").WithParameterValidation();
 
-        gamesGroup.MapGet("/", (IGamesRepository repository) =>
-        repository.GetAll()
+        gamesGroup.MapGet("/", async (IGamesRepository repository) =>
+        (await repository.GetAllAsync())
         .Select(game => game.AsDTO())
         );
 
         gamesGroup
             .MapGet(
                 "/{id}",
-                (IGamesRepository repository, int id) =>
+                async (IGamesRepository repository, int id) =>
                 {
-                    Game? game = repository.Get(id);
+                    Game? game = await repository.GetAsync(id);
                     return game is not null ? Results.Ok(game.AsDTO()) : Results.NotFound();
                 }
             )
@@ -31,7 +31,7 @@ public static class GamesEndpoints
 
         gamesGroup.MapPost(
             "/",
-            (IGamesRepository repository, CreateGameDTO gameDTO) =>
+            async (IGamesRepository repository, CreateGameDTO gameDTO) =>
             {
                 Game game = new()
                 {
@@ -41,7 +41,7 @@ public static class GamesEndpoints
                     ReleaseDate = gameDTO.ReleaseDate,
                     ImageUri = gameDTO.ImageUri
                 };
-                repository.Create(game);
+                await repository.CreateAsync(game);
 
                 return Results.CreatedAtRoute(GetGameEndPointName, new { id = game.Id }, game);
             }
@@ -49,9 +49,9 @@ public static class GamesEndpoints
 
         gamesGroup.MapPut(
             "/{id}",
-            (IGamesRepository repository, int id, UpdateGameDTO updatedGameDTO) =>
+            async (IGamesRepository repository, int id, UpdateGameDTO updatedGameDTO) =>
             {
-                Game? existingGame = repository.Get(id);
+                Game? existingGame = await repository.GetAsync(id);
                 if (existingGame is null)
                 {
                     return Results.NotFound();
@@ -63,7 +63,7 @@ public static class GamesEndpoints
                 existingGame.ReleaseDate = updatedGameDTO.ReleaseDate;
                 existingGame.ImageUri = existingGame.ImageUri;
 
-                repository.Update(existingGame);
+                await repository.UpdateAsync(existingGame);
 
                 return Results.NoContent();
             }
@@ -71,12 +71,12 @@ public static class GamesEndpoints
 
         gamesGroup.MapDelete(
             "/{id}",
-            (IGamesRepository repository, int id) =>
+            async (IGamesRepository repository, int id) =>
             {
-                Game? existingGame = repository.Get(id);
+                Game? existingGame = await repository.GetAsync(id);
                 if (existingGame is not null)
                 {
-                    repository.Delete(id);
+                    await repository.DeleteAsync(id);
                 }
                 return Results.NoContent();
             }
