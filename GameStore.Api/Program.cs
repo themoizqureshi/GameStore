@@ -19,7 +19,7 @@ builder.Services.AddHttpLogging(o => { });
 
 var app = builder.Build();
 
-await app.Services.InitializeDb();
+// await app.Services.InitializeDb();
 
 app.UseHttpLogging();
 app.MapGamesEndpoints();
