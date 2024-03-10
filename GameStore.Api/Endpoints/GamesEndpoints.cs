@@ -8,49 +8,52 @@ namespace GameStore.Api.Endpoints;
 
 public static class GamesEndpoints
 {
-    const string GetGameEndPointName = "GetGame";
+    const string GetGameV1EndPointName = "GetGameV1";
+    const string GetGameV2EndPointName = "GetGameV2";
 
     public static RouteGroupBuilder MapGamesEndpoints(this IEndpointRouteBuilder routes)
     {
 
-        var gamesGroup = routes.MapGroup("/games").WithParameterValidation();
+        var v1GamesGroup = routes.MapGroup("/v1/games").WithParameterValidation();
+        var v2GamesGroup = routes.MapGroup("/v2/games").WithParameterValidation();
 
-        gamesGroup.MapGet("/", async (IGamesRepository repository, ILoggerFactory loggerFactory) =>
+        //V1 Get Endpoints
+        v1GamesGroup.MapGet("/", async (IGamesRepository repository, ILoggerFactory loggerFactory) =>
         {
-            try
-            {
-                return Results.Ok((await repository.GetAllAsync()).Select(game => game.AsDTO()));
-            }
-            catch (Exception ex)
-            {
-                var logger = loggerFactory.CreateLogger("Games Endpoints");
-                logger.LogError(ex, "Could not process a request on machine {Machine}. TraceId:{TraceId}",
-                Environment.MachineName,
-                Activity.Current?.TraceId);
-
-                return Results.Problem(
-                    title: "We made a mistake but we're working on it!",
-                    statusCode: StatusCodes.Status500InternalServerError,
-                    extensions: new Dictionary<string, object?>{
-                        {"traceId",Activity.Current?.TraceId.ToString()}
-                    }
-                );
-            }
+            return Results.Ok((await repository.GetAllAsync()).Select(game => game.AsDTOV1()));
         });
 
-        gamesGroup
+        v1GamesGroup
             .MapGet(
                 "/{id}",
                 async (IGamesRepository repository, int id) =>
                 {
                     Game? game = await repository.GetAsync(id);
-                    return game is not null ? Results.Ok(game.AsDTO()) : Results.NotFound();
+                    return game is not null ? Results.Ok(game.AsDTOV1()) : Results.NotFound();
                 }
             )
-            .WithName(GetGameEndPointName)
+            .WithName(GetGameV1EndPointName)
             .RequireAuthorization(Policies.ReadAccess);
 
-        gamesGroup.MapPost(
+        //V2 Get Endpoints       
+        v2GamesGroup.MapGet("/", async (IGamesRepository repository, ILoggerFactory loggerFactory) =>
+        {
+            return Results.Ok((await repository.GetAllAsync()).Select(game => game.AsDTOV2()));
+        });
+
+        v2GamesGroup
+            .MapGet(
+                "/{id}",
+                async (IGamesRepository repository, int id) =>
+                {
+                    Game? game = await repository.GetAsync(id);
+                    return game is not null ? Results.Ok(game.AsDTOV2()) : Results.NotFound();
+                }
+            )
+            .WithName(GetGameV2EndPointName)
+            .RequireAuthorization(Policies.ReadAccess);
+
+        v1GamesGroup.MapPost(
             "/",
             async (IGamesRepository repository, CreateGameDTO gameDTO) =>
             {
@@ -64,11 +67,11 @@ public static class GamesEndpoints
                 };
                 await repository.CreateAsync(game);
 
-                return Results.CreatedAtRoute(GetGameEndPointName, new { id = game.Id }, game);
+                return Results.CreatedAtRoute(GetGameV1EndPointName, new { id = game.Id }, game);
             }
         ).RequireAuthorization(Policies.WriteAccess);
 
-        gamesGroup.MapPut(
+        v1GamesGroup.MapPut(
             "/{id}",
             async (IGamesRepository repository, int id, UpdateGameDTO updatedGameDTO) =>
             {
@@ -90,7 +93,7 @@ public static class GamesEndpoints
             }
         ).RequireAuthorization(Policies.WriteAccess);
 
-        gamesGroup.MapDelete(
+        v1GamesGroup.MapDelete(
             "/{id}",
             async (IGamesRepository repository, int id) =>
             {
@@ -102,6 +105,6 @@ public static class GamesEndpoints
                 return Results.NoContent();
             }
         ).RequireAuthorization(Policies.WriteAccess);
-        return gamesGroup;
+        return v1GamesGroup;
     }
 }

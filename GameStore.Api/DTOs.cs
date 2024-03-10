@@ -2,11 +2,20 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GameStore.Api.DTOs;
 
-public record GameDTO(
+public record GameDTOV1(
     int Id,
     string Name,
     string Genre,
     decimal Price,
+    DateTime ReleaseDate,
+    string ImageUri
+);
+public record GameDTOV2(
+    int Id,
+    string Name,
+    string Genre,
+    decimal Price,
+    decimal RetailPrice,
     DateTime ReleaseDate,
     string ImageUri
 );
