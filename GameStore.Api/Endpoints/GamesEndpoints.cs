@@ -14,16 +14,18 @@ public static class GamesEndpoints
     public static RouteGroupBuilder MapGamesEndpoints(this IEndpointRouteBuilder routes)
     {
 
-        var v1GamesGroup = routes.MapGroup("/v1/games").WithParameterValidation();
-        var v2GamesGroup = routes.MapGroup("/v2/games").WithParameterValidation();
-
-        //V1 Get Endpoints
-        v1GamesGroup.MapGet("/", async (IGamesRepository repository, ILoggerFactory loggerFactory) =>
+        var gamesGroup = routes.NewVersionedApi()
+        .MapGroup("/v{version:apiVersion}/games")
+        .HasApiVersion(1.0)
+        .HasApiVersion(2.0)
+        .WithParameterValidation();
+        //V1 Get Endpoints      
+        gamesGroup.MapGet("/", async (IGamesRepository repository, ILoggerFactory loggerFactory) =>
         {
             return Results.Ok((await repository.GetAllAsync()).Select(game => game.AsDTOV1()));
-        });
+        }).MapToApiVersion(1.0);
 
-        v1GamesGroup
+        gamesGroup
             .MapGet(
                 "/{id}",
                 async (IGamesRepository repository, int id) =>
@@ -33,15 +35,15 @@ public static class GamesEndpoints
                 }
             )
             .WithName(GetGameV1EndPointName)
-            .RequireAuthorization(Policies.ReadAccess);
+            .RequireAuthorization(Policies.ReadAccess).MapToApiVersion(1.0);
 
         //V2 Get Endpoints       
-        v2GamesGroup.MapGet("/", async (IGamesRepository repository, ILoggerFactory loggerFactory) =>
+        gamesGroup.MapGet("/", async (IGamesRepository repository, ILoggerFactory loggerFactory) =>
         {
             return Results.Ok((await repository.GetAllAsync()).Select(game => game.AsDTOV2()));
-        });
+        }).MapToApiVersion(2.0);
 
-        v2GamesGroup
+        gamesGroup
             .MapGet(
                 "/{id}",
                 async (IGamesRepository repository, int id) =>
@@ -51,9 +53,9 @@ public static class GamesEndpoints
                 }
             )
             .WithName(GetGameV2EndPointName)
-            .RequireAuthorization(Policies.ReadAccess);
+            .RequireAuthorization(Policies.ReadAccess).MapToApiVersion(2.0);
 
-        v1GamesGroup.MapPost(
+        gamesGroup.MapPost(
             "/",
             async (IGamesRepository repository, CreateGameDTO gameDTO) =>
             {
@@ -69,9 +71,9 @@ public static class GamesEndpoints
 
                 return Results.CreatedAtRoute(GetGameV1EndPointName, new { id = game.Id }, game);
             }
-        ).RequireAuthorization(Policies.WriteAccess);
+        ).RequireAuthorization(Policies.WriteAccess).MapToApiVersion(1.0);
 
-        v1GamesGroup.MapPut(
+        gamesGroup.MapPut(
             "/{id}",
             async (IGamesRepository repository, int id, UpdateGameDTO updatedGameDTO) =>
             {
@@ -91,9 +93,9 @@ public static class GamesEndpoints
 
                 return Results.NoContent();
             }
-        ).RequireAuthorization(Policies.WriteAccess);
+        ).RequireAuthorization(Policies.WriteAccess).MapToApiVersion(1.0);
 
-        v1GamesGroup.MapDelete(
+        gamesGroup.MapDelete(
             "/{id}",
             async (IGamesRepository repository, int id) =>
             {
@@ -104,7 +106,7 @@ public static class GamesEndpoints
                 }
                 return Results.NoContent();
             }
-        ).RequireAuthorization(Policies.WriteAccess);
-        return v1GamesGroup;
+        ).RequireAuthorization(Policies.WriteAccess).MapToApiVersion(1.0);
+        return gamesGroup;
     }
 }

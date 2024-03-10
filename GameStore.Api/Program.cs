@@ -11,13 +11,7 @@ builder.Services.AddAuthentication().AddJwtBearer();
 builder.Services.AddGameStoreAuthorization();
 builder.Services.AddHttpLogging(o => { });
 
-// builder.Logging.AddJsonConsole(options =>
-// {
-//     options.JsonWriterOptions = new()
-//     {
-//         Indented = true
-//     };
-// });
+builder.Services.AddApiVersioning();
 
 var app = builder.Build();
 app.UseExceptionHandler(exceptionHandlerApp => exceptionHandlerApp.ConfigureExceptionHandler());
