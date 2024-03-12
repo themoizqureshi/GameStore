@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace GameStore.Api.Authorization;
 
@@ -9,13 +11,16 @@ public static class AuthorizationExtensions
 {
     public static IServiceCollection AddGameStoreAuthorization(this IServiceCollection services)
     {
-        services.AddAuthorization(options =>
+        services.AddScoped<IClaimsTransformation, ScopeTransformation>()
+                .AddAuthorization(options =>
         {
             options.AddPolicy(Policies.ReadAccess, builder =>
-            builder.RequireClaim("scope", "games:read"));
+            builder.RequireClaim("scope", "games:read")
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "Auth0"));
             options.AddPolicy(Policies.WriteAccess, builder =>
             builder.RequireClaim("scope", "games:write")
-            .RequireRole("Admin"));
+                    .RequireRole("Admin")
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "Auth0"));
         });
         return services;
     }
