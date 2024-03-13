@@ -2,6 +2,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GameStore.Api.DTOs;
 
+public record GetGamesDTOV1(
+    int pageNumber = 1,
+    int pageSize = 5
+);
 public record GameDTOV1(
     int Id,
     string Name,
@@ -9,6 +13,10 @@ public record GameDTOV1(
     decimal Price,
     DateTime ReleaseDate,
     string ImageUri
+);
+public record GetGamesDTOV2(
+    int pageNumber = 1,
+    int pageSize = 5
 );
 public record GameDTOV2(
     int Id,
