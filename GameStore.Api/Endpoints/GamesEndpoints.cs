@@ -25,9 +25,9 @@ public static class GamesEndpoints
             [AsParameters] GetGamesDTOV1 request,
             HttpContext http) =>
         {
-            var totalCount = await repository.CountAsync();
+            var totalCount = await repository.CountAsync(request.filter);
             http.Response.AddPaginationHeader(totalCount, request.pageSize);
-            return Results.Ok((await repository.GetAllAsync(request.pageNumber, request.pageSize))
+            return Results.Ok((await repository.GetAllAsync(request.pageNumber, request.pageSize, request.filter))
                                                 .Select(game => game.AsDTOV1()));
         }).MapToApiVersion(1.0);
 
@@ -50,10 +50,14 @@ public static class GamesEndpoints
             [AsParameters] GetGamesDTOV2 request,
             HttpContext http) =>
         {
-            var totalCount = await repository.CountAsync();
+            var totalCount = await repository.CountAsync(request.filter);
             http.Response.AddPaginationHeader(totalCount, request.pageSize);
 
-            return Results.Ok((await repository.GetAllAsync(request.pageNumber, request.pageSize)).Select(game => game.AsDTOV2()));
+            return Results.Ok((await repository.GetAllAsync(
+                request.pageNumber,
+                request.pageSize,
+                request.filter))
+            .Select(game => game.AsDTOV2()));
         }).MapToApiVersion(2.0);
 
         gamesGroup
